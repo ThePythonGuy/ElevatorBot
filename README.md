@@ -1,2 +1,2 @@
 # ElevatorBot
-The Discord bot that is an elevator.
+The Discord bot that ~~is~~ will be an elevator.
