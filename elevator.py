@@ -81,7 +81,12 @@ async def on_message_edit(original, new):
 	if author != client.user:
 		try:
 			logs = discord.utils.get(author.server.channels, name="chat-logs")
-			await client.send_message(logs, "`#{}` **{} edited their message**: \n*old:* {}  \n*new:* {}".format(channel, author, old_content, new_content))
+			embed = discord.Embed(title="Message Edited", color=0xFFFF00)
+			embed.add_field(name="User", value=author, inline=False)
+			embed.add_field(name="Old Message", value=old_content, inline=True)
+			embed.add_field(name="New Message", value=new_content, inline=True)
+			embed.set_footer(text="Channel: #{}".format(channel))
+			await client.send_message(logs, embed=embed)
 			await client.process_commands(new)
 		except:
 			print("Edit unable to be logged")
@@ -94,9 +99,19 @@ async def on_message_delete(message):
 	if author != client.user:
 		try:
 			logs = discord.utils.get(author.server.channels, name="chat-logs")
-			await client.send_message(logs, "`#{}` **{} deleted their message**: {}".format(channel, author, content))
+			embed = discord.Embed(title="Message Deleted", color=0xFF0000)
+			embed.add_field(name="User", value=author, inline=False)
+			embed.add_field(name="Deleted Message", value=content, inline=True)
+			embed.set_footer(text="Channel: #{}".format(channel))
+			await client.send_message(logs, embed=embed)
 			await client.process_commands(message)
 		except:
 			print("Deletion unable to be logged")
+
+@client.command(pass_context=True)
+async def clear(ctx, amount):
+	channel = ctx.message.channel
+	messages = int(amount)
+	await client.purge_from(channel, limit=messages)
 
 client.run(TOKEN)
