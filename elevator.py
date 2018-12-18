@@ -57,6 +57,7 @@ async def ping():
 @client.command()
 async def kill():
 	print("Kill command received. Exiting...")
+	await client.say("Aauughhh! :dizzy_face:")
 	await client.logout()
 
 @client.event
