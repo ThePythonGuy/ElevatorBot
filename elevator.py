@@ -29,7 +29,6 @@ async def floor(ctx, level):
 		floor = get_floor(int(level))
 		if floor:
 			role_name = floor.name
-			role_name = get_floor(int(level)).name
 			role = discord.utils.get(member.server.roles, name=role_name)
 			await client.replace_roles(member, role)
 			await client.say("Done.")
