@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands
 
-TOKEN = open("token.txt").readline()
+with open("token.txt") as token_file
+    TOKEN = token_file.read().strip()
 
 client = commands.Bot(command_prefix='.')
 
