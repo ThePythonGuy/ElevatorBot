@@ -41,7 +41,7 @@ async def floor(ctx, level):
 async def floors(ctx):
 	embed = discord.Embed(title="Floors", description="The directory of floors in the tower.", color=0xcccccc)
 	for floor in FLOORS:
-		embed.add_field(name="%d -- %s" % (floor.number, floor.name), value=floor.description, inline=False)
+		embed.add_field(name="%d -- %s" % (floor.number, floor.description), value=floor.name, inline=False)
 	await client.say(embed=embed)
 
 def get_floor(level):
@@ -53,6 +53,11 @@ def get_floor(level):
 @client.command()
 async def ping():
 	await client.say("Pong!")
+
+@client.command()
+async def kill():
+	print("Kill command received. Exiting...")
+	await client.logout()
 
 @client.event
 async def on_message(message):
