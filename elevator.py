@@ -61,12 +61,13 @@ async def kill():
 
 @client.event
 async def on_message(message):
+	channel = message.channel
 	author = message.author
 	content = message.content
 	if author != client.user:
 		try:
-			channel = discord.utils.get(author.server.channels, name="chat-logs")
-			await client.send_message(channel, "**{}**: {}".format(author, content))
+			logs = discord.utils.get(author.server.channels, name="chat-logs")
+			await client.send_message(logs, "`#{}` **{}**: {}".format(channel, author, content))
 			await client.process_commands(message)
 		except:
 			print("Message unable to be logged")
@@ -74,24 +75,26 @@ async def on_message(message):
 @client.event
 async def on_message_edit(original, new):
 	author = new.author
+	channel = new.channel
 	old_content = original.content
 	new_content = new.content
 	if author != client.user:
 		try:
-			channel = discord.utils.get(author.server.channels, name="chat-logs")
-			await client.send_message(channel, "**{} edited their message**: \n*old:* {}  \n*new:* {}".format(author, old_content, new_content))
+			logs = discord.utils.get(author.server.channels, name="chat-logs")
+			await client.send_message(logs, "`#{}` **{} edited their message**: \n*old:* {}  \n*new:* {}".format(channel, author, old_content, new_content))
 			await client.process_commands(new)
 		except:
 			print("Edit unable to be logged")
 
 @client.event
 async def on_message_delete(message):
+	channel = message.channel
 	author = message.author
 	content = message.content
 	if author != client.user:
 		try:
-			channel = discord.utils.get(author.server.channels, name="chat-logs")
-			await client.send_message(channel, "**{} deleted their message**: {}".format(author, content))
+			logs = discord.utils.get(author.server.channels, name="chat-logs")
+			await client.send_message(logs, "`#{}` **{} deleted their message**: {}".format(channel, author, content))
 			await client.process_commands(message)
 		except:
 			print("Deletion unable to be logged")
