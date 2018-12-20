@@ -25,24 +25,28 @@ async def on_ready():
 @client.command(pass_context=True)
 async def floor(ctx, level):
 	member = ctx.message.author
-	try:
-		floor = get_floor(int(level))
-		if floor:
-			role_name = floor.name
-			role = discord.utils.get(member.server.roles, name=role_name)
-			await client.replace_roles(member, role)
-			await client.say("Done.")
-		else:
-			await client.say("Sorry, that's not a valid floor number. Use `.floors` to get a list of available floors.")
-	except:
-		await client.say("Error while trying to add role!")
+	channel = ctx.message.channel
+	if channel.name == "elevator":
+		try:
+			floor = get_floor(int(level))
+			if floor:
+				role_name = floor.name
+				role = discord.utils.get(member.server.roles, name=role_name)
+				await client.replace_roles(member, role)
+				await client.say("Done.")
+			else:
+				await client.say("Sorry, that's not a valid floor number. Use `.floors` to get a list of available floors.")
+		except:
+			await client.say("Error while trying to add role!")
 
 @client.command(pass_context=True)
 async def floors(ctx):
-	embed = discord.Embed(title="Floors", description="The directory of floors in the tower.", color=0xcccccc)
-	for floor in FLOORS:
-		embed.add_field(name="%d -- %s" % (floor.number, floor.description), value=floor.name, inline=False)
-	await client.say(embed=embed)
+	channel = ctx.message.channel
+	if channel.name == "elevator":
+		embed = discord.Embed(title="Floors", description="The directory of floors in the tower.", color=0xcccccc)
+		for floor in FLOORS:
+			embed.add_field(name="%d -- %s" % (floor.number, floor.description), value=floor.name, inline=False)
+		await client.say(embed=embed)
 
 def get_floor(level):
 	for floor in FLOORS:
