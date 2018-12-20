@@ -88,7 +88,6 @@ async def on_message_edit(original, new):
 			embed.add_field(name="New Message", value=new_content, inline=True)
 			embed.set_footer(text="Channel: #{}".format(channel))
 			await client.send_message(logs, embed=embed)
-			await client.process_commands(new)
 		except:
 			print("Edit unable to be logged")
 
@@ -105,14 +104,23 @@ async def on_message_delete(message):
 			embed.add_field(name="Deleted Message", value=content, inline=True)
 			embed.set_footer(text="Channel: #{}".format(channel))
 			await client.send_message(logs, embed=embed)
-			await client.process_commands(message)
 		except:
 			print("Deletion unable to be logged")
 
 @client.command(pass_context=True)
-async def clear(ctx, amount):
+async def clear(ctx, amount=100):
 	channel = ctx.message.channel
-	messages = int(amount)
-	await client.purge_from(channel, limit=messages)
+	author = ctx.message.author
+	if amount != 100:
+		messages = int(amount)
+	else:
+		messages = 100
+	await client.purge_from(channel, limit=1)
+	num = len(await client.purge_from(channel, limit=messages))
+	try:
+		logs = discord.utils.get(author.server.channels, name="chat-logs")
+		await client.send_message(logs, "**{}** *purged {} message(s) in* `#{}`".format(author, num, channel))
+	except:
+		print("Purge unable to be logged")
 
 client.run(TOKEN)
