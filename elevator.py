@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from time import sleep
 
 class Floor:
 	def __init__(self, number, name, description):
@@ -17,6 +18,7 @@ FLOORS = [
 	Floor(1, "Floor 1", "Science"),
 	Floor(2, "Floor 2", "Art"),
 ]
+floor_roles = [r.name for r in FLOORS]
 
 @client.event
 async def on_ready():
@@ -32,17 +34,48 @@ async def floor(ctx, level):
 	member = ctx.message.author
 	channel = ctx.message.channel
 	if channel.name == "elevator":
+		print("floor command: command used in #elevator")
 		try:
 			floor = get_floor(int(level))
 			if floor:
-				role_name = floor.name
-				role = discord.utils.get(member.server.roles, name=role_name)
-				await client.replace_roles(member, role)
-				await client.say("Done.")
+				print("         ... : got floor from level parameter")
+				current_role = None
+				for r in member.roles:
+					if r.name in floor_roles:
+						current_role = r
+				if r:
+					print("         ... : found current floor of user")
+					new_role = discord.utils.get(member.server.roles, name=floor.name)
+					print("         ... : got new floor role")
+					if new_role.name == current_role.name:
+						print("         ... : already on target floor")
+						await client.say("Oh? You're already on that floor.")
+					else:
+						print("         ... : target floor is new floor")
+						await client.remove_roles(member, current_role)
+						print("         ... : removed current floor role")
+						if floor_roles.index(new_role.name) > floor_roles.index(current_role.name):
+							await client.say("Going up!")
+						else:
+							await client.say("Going down!")
+						print("         ... : about to sleep...")
+						sleep(4)
+						print("         ... : sleep done")
+						await client.add_roles(member, new_role)
+						print("         ... : added new role to user")
+						await client.say("Ding!")
+						print("         ... : done")
+				else:
+					print("         ... : user has no floor role")
+					await client.say("Uh oh, it seems like you're not currently on any floors. You should contact someone in the maintenence crew.")
 			else:
+				print("         ... : level given not a valid floor")
 				await client.say("Sorry, that's not a valid floor number. Use `.floors` to get a list of available floors.")
 		except:
-			await client.say("Error while trying to add role!")
+			print("         ... : exception occured in floor command")
+			await client.say("Error in floor command!")
+	else:
+		print("floor command: command used outside of #elevator")
 
 @client.command(pass_context=True)
 async def floors(ctx):
