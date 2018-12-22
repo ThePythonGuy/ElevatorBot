@@ -22,6 +22,11 @@ FLOORS = [
 async def on_ready():
 	print("Initialized")
 
+@client.event
+async def on_member_join(member):
+	role = discord.utils.get(member.server.roles, name="Ground Level")
+	await client.add_roles(member, role)
+
 @client.command(pass_context=True)
 async def floor(ctx, level):
 	member = ctx.message.author
