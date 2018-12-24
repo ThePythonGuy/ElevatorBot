@@ -2,6 +2,9 @@ import discord
 from discord.ext import commands
 from time import sleep
 
+players = {}
+runtime = {}
+
 class Floor:
 	def __init__(self, number, name, description):
 		self.number = number
@@ -33,6 +36,20 @@ async def on_member_join(member):
 async def floor(ctx, level):
 	member = ctx.message.author
 	channel = ctx.message.channel
+	server = member.server
+	vc = member.voice.voice_channel
+	if vc == discord.utils.get(server.channels, name="General", type=discord.ChannelType.voice) \
+		and not client.is_voice_connected(server):
+		try:
+			await client.join_voice_channel(vc)
+			voice_client = client.voice_client_in(server)
+			player = voice_client.create_ffmpeg_player("Elevator Music.mp3")
+			players[server.id] = player
+			player.start()
+			player.pause()
+			runtime[server.id] = 0
+		except:
+			print("Unable to join voice channel.")
 	if channel.name == "elevator":
 		print("floor command: command used in #elevator")
 		try:
@@ -43,7 +60,7 @@ async def floor(ctx, level):
 				for r in member.roles:
 					if r.name in floor_roles:
 						current_role = r
-				if r:
+				if current_role:
 					print("         ... : found current floor of user")
 					new_role = discord.utils.get(member.server.roles, name=floor.name)
 					print("         ... : got new floor role")
@@ -59,7 +76,22 @@ async def floor(ctx, level):
 						else:
 							await client.say("Going down!")
 						print("         ... : about to sleep...")
-						sleep(4)
+						try:
+							players[server.id].resume()
+							runtime[server.id] += 5
+						except:
+							print("No player found")
+						sleep(5)
+						try:
+							if runtime[server.id] >= 60:
+								players[server.id].stop()
+								await client.voice_client_in(server).disconnect()
+						except:
+							print("No player found")
+						try:
+							players[server.id].pause()
+						except:
+							print("No player found")
 						print("         ... : sleep done")
 						await client.add_roles(member, new_role)
 						print("         ... : added new role to user")
@@ -95,12 +127,6 @@ def get_floor(level):
 @client.command()
 async def ping():
 	await client.say("Pong!")
-
-@client.command()
-async def kill():
-	print("Kill command received. Exiting...")
-	await client.say("Aauughhh! :dizzy_face:")
-	await client.logout()
 
 @client.event
 async def on_message(message):
@@ -164,5 +190,11 @@ async def clear(ctx, amount=100):
 		await client.send_message(logs, "**{}** *purged {} message(s) in* `#{}`".format(author, num, channel))
 	except:
 		print("Purge unable to be logged")
+
+@client.command()
+async def kill():
+	print("Kill command received. Exiting...")
+	await client.say("Aauughhh! :dizzy_face:")
+	await client.logout()
 
 client.run(TOKEN)
