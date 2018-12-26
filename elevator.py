@@ -17,9 +17,17 @@ with open("token.txt") as token_file:
 client = commands.Bot(command_prefix='.')
 
 FLOORS = [
+	Floor(-2, "Garage Level 2", "Parking Garage B"),
+	Floor(-1, "Garage Level 1", "Parking Garage A"),
 	Floor(0, "Ground Level", "The Lobby"),
 	Floor(1, "Floor 1", "Science"),
 	Floor(2, "Floor 2", "Art"),
+	Floor(3, "Floor 3", "Tech"),
+	Floor(4, "Floor 4", "Animals"),
+	Floor(5, "Floor 5", "Literally Just Screaming"),
+	Floor(6, "Floor 6", "Courage the Cowardly Dog Roleplay"),
+	Floor(7, "Floor 7", "Hotdog vs. Cheeseburger Supremacy"),
+	Floor(8, "Floor 8", "Whale Facts"),
 ]
 floor_roles = [r.name for r in FLOORS]
 
