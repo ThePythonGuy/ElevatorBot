@@ -1,9 +1,11 @@
 import discord
 from discord.ext import commands
 from time import sleep
+from datetime import datetime
 
 players = {}
 runtime = {}
+last_use = {}
 
 class Floor:
 	def __init__(self, number, name, description):
@@ -46,76 +48,82 @@ async def floor(ctx, level):
 	channel = ctx.message.channel
 	server = member.server
 	vc = member.voice.voice_channel
-	if vc == discord.utils.get(server.channels, name="General", type=discord.ChannelType.voice) \
-		and not client.is_voice_connected(server):
-		try:
-			await client.join_voice_channel(vc)
-			voice_client = client.voice_client_in(server)
-			player = voice_client.create_ffmpeg_player("Elevator Music.mp3")
-			players[server.id] = player
-			player.start()
-			player.pause()
-			runtime[server.id] = 0
-		except:
-			print("Unable to join voice channel.")
-	if channel.name == "elevator":
-		print("floor command: command used in #elevator")
-		try:
-			floor = get_floor(int(level))
-			if floor:
-				print("         ... : got floor from level parameter")
-				current_role = None
-				for r in member.roles:
-					if r.name in floor_roles:
-						current_role = r
-				if current_role:
-					print("         ... : found current floor of user")
-					new_role = discord.utils.get(member.server.roles, name=floor.name)
-					print("         ... : got new floor role")
-					if new_role.name == current_role.name:
-						print("         ... : already on target floor")
-						await client.say("Oh? You're already on that floor.")
-					else:
-						print("         ... : target floor is new floor")
-						await client.remove_roles(member, current_role)
-						print("         ... : removed current floor role")
-						if floor_roles.index(new_role.name) > floor_roles.index(current_role.name):
-							await client.say("Going up!")
+	try:
+		last_use[server.id] = last_use[server.id]
+	except:
+		last_use[server.id] = datetime(1970, 1, 1, 0, 0)
+	if ctx.message.timestamp > last_use[server.id]:
+		if vc == discord.utils.get(server.channels, name="General", type=discord.ChannelType.voice) \
+			and not client.is_voice_connected(server):
+			try:
+				await client.join_voice_channel(vc)
+				voice_client = client.voice_client_in(server)
+				player = voice_client.create_ffmpeg_player("Elevator Music.mp3")
+				players[server.id] = player
+				player.start()
+				player.pause()
+				runtime[server.id] = 0
+			except:
+				print("Unable to join voice channel.")
+		if channel.name == "elevator":
+			print("floor command: command used in #elevator")
+			try:
+				floor = get_floor(int(level))
+				if floor:
+					print("         ... : got floor from level parameter")
+					current_role = None
+					for r in member.roles:
+						if r.name in floor_roles:
+							current_role = r
+					if current_role:
+						print("         ... : found current floor of user")
+						new_role = discord.utils.get(member.server.roles, name=floor.name)
+						print("         ... : got new floor role")
+						if new_role.name == current_role.name:
+							print("         ... : already on target floor")
+							await client.say("Oh? You're already on that floor.")
 						else:
-							await client.say("Going down!")
-						print("         ... : about to sleep...")
-						try:
-							players[server.id].resume()
-							runtime[server.id] += 5
-						except:
-							print("No player found")
-						sleep(5)
-						try:
-							if runtime[server.id] >= 60:
-								players[server.id].stop()
-								await client.voice_client_in(server).disconnect()
-						except:
-							print("No player found")
-						try:
-							players[server.id].pause()
-						except:
-							print("No player found")
-						print("         ... : sleep done")
-						await client.add_roles(member, new_role)
-						print("         ... : added new role to user")
-						await client.say("Ding!")
-						print("         ... : done")
+							print("         ... : target floor is new floor")
+							await client.remove_roles(member, current_role)
+							print("         ... : removed current floor role")
+							if floor_roles.index(new_role.name) > floor_roles.index(current_role.name):
+								await client.say("Going up!")
+							else:
+								await client.say("Going down!")
+							print("         ... : about to sleep...")
+							try:
+								players[server.id].resume()
+								runtime[server.id] += 5
+							except:
+								print("No player found")
+							sleep(5)
+							try:
+								if runtime[server.id] >= 60:
+									players[server.id].stop()
+									await client.voice_client_in(server).disconnect()
+							except:
+								print("No player found")
+							try:
+								players[server.id].pause()
+							except:
+								print("No player found")
+							print("         ... : sleep done")
+							await client.add_roles(member, new_role)
+							print("         ... : added new role to user")
+							last_use[server.id] = datetime.utcnow()
+							await client.say("Ding!")
+							print("         ... : done")
+					else:
+						print("         ... : user has no floor role")
+						await client.say("Uh oh, it seems like you're not currently on any floors. You should contact someone in the maintenence crew.")
 				else:
-					print("         ... : user has no floor role")
-					await client.say("Uh oh, it seems like you're not currently on any floors. You should contact someone in the maintenence crew.")
-			else:
-				print("         ... : level given not a valid floor")
-				await client.say("Sorry, that's not a valid floor number. Use `.floors` to get a list of available floors.")
-		except:
-			print("         ... : exception occured in floor command")
-			await client.say("Error in floor command!")
-	else:
-		print("floor command: command used outside of #elevator")
+					print("         ... : level given not a valid floor")
+					await client.say("Sorry, that's not a valid floor number. Use `.floors` to get a list of available floors.")
+			except:
+				print("         ... : exception occurred in floor command")
+				await client.say("Error in floor command!")
+		else:
+			print("floor command: command used outside of #elevator")
 
 @client.command(pass_context=True)
 async def floors(ctx):
@@ -140,7 +148,7 @@ async def ping():
 async def on_message(message):
 	channel = message.channel
 	author = message.author
-	content = message.content
+	content = message.clean_content
 	if author != client.user:
 		try:
 			logs = discord.utils.get(author.server.channels, name="chat-logs")
@@ -183,6 +191,19 @@ async def on_message_delete(message):
 		except:
 			print("Deletion unable to be logged")
 
+@client.event
+async def on_member_update(old, new):
+	if old.nick is not new.nick:
+		try:
+			logs = discord.utils.get(old.server.channels, name="chat-logs")
+			embed = discord.Embed(title="Nick Changed", color=0xCC00FF)
+			embed.add_field(name="User", value=old, inline=False)
+			embed.add_field(name="Original", value=old.nick, inline=False)
+			embed.add_field(name="New", value=new.nick, inline=False)
+			await client.send_message(logs, embed=embed)
+		except:
+			print("Nick edit unable to be logged")
+
 @client.command(pass_context=True)
 async def clear(ctx, amount=100):
 	channel = ctx.message.channel
@@ -201,6 +222,12 @@ async def clear(ctx, amount=100):
 
 @client.command()
 async def kill():
+	print("Kill command received. Exiting...")
+	await client.say("Aauughhh! :dizzy_face:")
+	await client.logout()
+
+@client.command()
+async def murder_to_death():
 	print("Kill command received. Exiting...")
 	await client.say("Aauughhh! :dizzy_face:")
 	await client.logout()
