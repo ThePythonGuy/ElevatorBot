@@ -38,7 +38,7 @@ COMMANDS = [
 
 @client.command()
 async def help():
-	embed = discord.Embed(title="Commands", description="List of commands for the elevator.", color=0x696969)
+	embed = discord.Embed(title="Commands", color=0x696969)
 	for command in COMMANDS:
 		embed.add_field(name="{}{}".format(client.command_prefix, command.name), value=command.description, inline=False)
 	await client.say(embed=embed)
