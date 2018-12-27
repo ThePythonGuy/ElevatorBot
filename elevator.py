@@ -35,6 +35,7 @@ COMMANDS = [
 	Command("kill", "Stops the elevator in an emergency. (dev use only)"),
 	Command("murder_to_death", "Does the same thing as kill. (dev use only)")
 ]
+
 @client.command()
 async def help():
 	embed = discord.Embed(title="Commands", description="List of commands for the elevator.", color=0x696969)
@@ -58,7 +59,11 @@ FLOORS = [
 floor_roles = [r.name for r in FLOORS]
 
 @client.command(pass_context=True)
-async def floor(ctx, level):
+async def floor(ctx, level=None):
+	if not level:
+		print("         ... : no floor number given")
+		await client.say("What do you want me to do? I can't take you to a floor unless you tell me what it is.")
+		return
 	member = ctx.message.author
 	channel = ctx.message.channel
 	server = member.server
@@ -132,7 +137,7 @@ async def floor(ctx, level):
 					await client.say("Sorry, that's not a valid floor number. Use `.floors` to get a list of available floors.")
 			except ValueError:
 				print("         ... : tried to parse invalid int")
-				await client.say("Sorry, that's not a valid number.")
+				await client.say("Uh, last time I checked, that's not a valid integer.")
 			except:
 				print("         ... : exception occurred in floor command")
 				await client.say("Error in floor command!")
