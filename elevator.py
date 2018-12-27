@@ -193,7 +193,7 @@ async def on_message_delete(message):
 
 @client.event
 async def on_member_update(old, new):
-	if old.nick is not new.nick:
+	if old.nick != new.nick:
 		try:
 			logs = discord.utils.get(old.server.channels, name="chat-logs")
 			embed = discord.Embed(title="Nick Changed", color=0xCC00FF)
