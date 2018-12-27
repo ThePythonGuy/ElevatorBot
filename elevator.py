@@ -13,10 +13,33 @@ class Floor:
 		self.name = name
 		self.description = description
 
+class Command:
+	def __init__(self, name, description):
+		self.name = name
+		self.description = description
+
 with open("token.txt") as token_file:
 	TOKEN = token_file.read().strip()
 
 client = commands.Bot(command_prefix='.')
+client.remove_command("help")
+
+COMMANDS = [
+	Command("help", "Pulls up this message."),
+	Command("ping", "Returns \"Pong!\""),
+	Command("floors", "Returns a list of floors. (only works in #elevator)"),
+	Command("floor <floor number>", "Brings you to the desired floor. (only works in #elevator)"),
+	Command("clear", "Purges up to 100 of the most recent messages. (dev use only)"),
+	Command("clear <n>", "Purges up to n of the most recent messages. (dev use only)"),
+	Command("kill", "Stops the elevator in an emergency. (dev use only)"),
+	Command("murder_to_death", "Does the same thing as kill. (dev use only)")
+]
+@client.command()
+async def help():
+	embed = discord.Embed(title="Commands", description="List of commands for the elevator.", color=0x696969)
+	for command in COMMANDS:
+		embed.add_field(name="{}{}".format(client.command_prefix, command.name), value=command.description, inline=False)
+	await client.say(embed=embed)
 
 FLOORS = [
 	Floor(-2, "Garage Level 2", "Parking Garage B"),
@@ -32,15 +55,6 @@ FLOORS = [
 	Floor(8, "Floor 8", "Whale Facts"),
 ]
 floor_roles = [r.name for r in FLOORS]
-
-@client.event
-async def on_ready():
-	print("Initialized")
-
-@client.event
-async def on_member_join(member):
-	role = discord.utils.get(member.server.roles, name="Ground Level")
-	await client.add_roles(member, role)
 
 @client.command(pass_context=True)
 async def floor(ctx, level):
@@ -144,6 +158,44 @@ def get_floor(level):
 async def ping():
 	await client.say("Pong!")
 
+@client.command(pass_context=True)
+async def clear(ctx, amount=100):
+	channel = ctx.message.channel
+	author = ctx.message.author
+	if author.top_role == discord.utils.get(author.server.roles, name="Maintenance Crew"):
+		if amount != 100:
+			messages = int(amount)
+		else:
+			messages = 100
+		await client.purge_from(channel, limit=1)
+		num = len(await client.purge_from(channel, limit=messages))
+		try:
+			logs = discord.utils.get(author.server.channels, name="chat-logs")
+			await client.send_message(logs, "**{}** *purged {} message(s) in* `#{}`".format(author, num, channel))
+		except:
+			print("Purge unable to be logged")
+
+@client.command()
+async def kill():
+	print("Kill command received. Exiting...")
+	await client.say("Aauughhh! :dizzy_face:")
+	await client.logout()
+
+@client.command()
+async def murder_to_death():
+	print("Kill command received. Exiting...")
+	await client.say("Aauughhh! :dizzy_face:")
+	await client.logout()
+
+@client.event
+async def on_ready():
+	print("Initialized")
+
+@client.event
+async def on_member_join(member):
+	role = discord.utils.get(member.server.roles, name="Ground Level")
+	await client.add_roles(member, role)
+
 @client.event
 async def on_message(message):
 	channel = message.channel
@@ -203,33 +255,5 @@ async def on_member_update(old, new):
 			await client.send_message(logs, embed=embed)
 		except:
 			print("Nick edit unable to be logged")
-
-@client.command(pass_context=True)
-async def clear(ctx, amount=100):
-	channel = ctx.message.channel
-	author = ctx.message.author
-	if amount != 100:
-		messages = int(amount)
-	else:
-		messages = 100
-	await client.purge_from(channel, limit=1)
-	num = len(await client.purge_from(channel, limit=messages))
-	try:
-		logs = discord.utils.get(author.server.channels, name="chat-logs")
-		await client.send_message(logs, "**{}** *purged {} message(s) in* `#{}`".format(author, num, channel))
-	except:
-		print("Purge unable to be logged")
-
-@client.command()
-async def kill():
-	print("Kill command received. Exiting...")
-	await client.say("Aauughhh! :dizzy_face:")
-	await client.logout()
-
-@client.command()
-async def murder_to_death():
-	print("Kill command received. Exiting...")
-	await client.say("Aauughhh! :dizzy_face:")
-	await client.logout()
 
 client.run(TOKEN)
