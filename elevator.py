@@ -2,10 +2,11 @@ import discord
 from discord.ext import commands
 from time import sleep
 from datetime import datetime
+from collections import defaultdict
 
 players = {}
 runtime = {}
-last_use = {}
+last_use = defaultdict(lambda: datetime(1970, 1, 1, 0, 0))
 
 class Floor:
 	def __init__(self, number, name, description):
@@ -62,10 +63,6 @@ async def floor(ctx, level):
 	channel = ctx.message.channel
 	server = member.server
 	vc = member.voice.voice_channel
-	try:
-		last_use[server.id] = last_use[server.id]
-	except:
-		last_use[server.id] = datetime(1970, 1, 1, 0, 0)
 	if ctx.message.timestamp > last_use[server.id]:
 		if vc == discord.utils.get(server.channels, name="General", type=discord.ChannelType.voice) \
 			and not client.is_voice_connected(server):
@@ -133,6 +130,9 @@ async def floor(ctx, level):
 				else:
 					print("         ... : level given not a valid floor")
 					await client.say("Sorry, that's not a valid floor number. Use `.floors` to get a list of available floors.")
+			except ValueError:
+				print("         ... : tried to parse invalid int")
+				await client.say("Sorry, that's not a valid number.")
 			except:
 				print("         ... : exception occurred in floor command")
 				await client.say("Error in floor command!")
