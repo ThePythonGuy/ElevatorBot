@@ -1,2 +1,4 @@
 # ElevatorBot
-The Discord bot that ~~is~~ will be an elevator.
+The Discord bot that is an elevator.
+
+Want ElevatorBot on your Discord server? No you don't.
