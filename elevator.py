@@ -128,6 +128,12 @@ async def floor(ctx, level=None):
 							print("         ... : added new role to user")
 							last_use[server.id] = datetime.utcnow()
 							await client.say("Ding!")
+							try:
+								ding = client.voice_client_in(server).create_ffmpeg_player("Ding1.mp3")
+								ding.start()
+							except:
+								print("No ding. Sorry.")
+
 							print("         ... : done")
 					else:
 						print("         ... : user has no floor role")
