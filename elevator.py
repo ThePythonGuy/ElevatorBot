@@ -6,7 +6,6 @@ from collections import defaultdict
 
 players = {}
 runtime = {}
-dings = {}
 last_use = defaultdict(lambda: datetime(1970, 1, 1, 0, 0))
 
 class Floor:
@@ -132,13 +131,11 @@ async def floor(ctx, level=None):
 							if not client.is_voice_connected(server):
 								await client.join_voice_channel(vc)
 							try:
-								try:
-									dings[server.id].stop()
-								except:
-									pass
 								ding = client.voice_client_in(server).create_ffmpeg_player("Ding1.mp3")
-								dings[server.id] = ding
 								ding.start()
+								while ding.is_playing():
+									sleep(0.01)
+								ding.stop()
 							except:
 								print("No ding. Sorry.")
 							print("         ... : done")
