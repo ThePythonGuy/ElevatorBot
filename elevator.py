@@ -206,13 +206,27 @@ async def on_ready():
 async def on_member_join(member):
 	role = discord.utils.get(member.server.roles, name="Ground Level")
 	await client.add_roles(member, role)
+	logs = discord.utils.get(member.server.channels, name="join-leave-logs")
+	em = discord.Embed(title=member.name, color=0x00FF00)
+	em.set_author(name="Welcome to The Tower!", icon_url=member.avatar_url)
+	em.set_footer(text="Members: {}".format(member.server.member_count))
+	await client.send_message(logs, embed=em)
+
+
+@client.event
+async def on_member_remove(member):
+	logs = discord.utils.get(member.server.channels, name="join-leave-logs")
+	em = discord.Embed(title=member.name, color=0xFF0000)
+	em.set_author(name="Thanks for coming!", icon_url=member.avatar_url)
+	em.set_footer(text="Members: {}".format(member.server.member_count))
+	await client.send_message(logs, embed=em)
 
 @client.event
 async def on_message(message):
 	channel = message.channel
 	author = message.author
 	content = message.clean_content
-	if author != client.user:
+	if author != client.user and not author.bot:
 		try:
 			logs = discord.utils.get(author.server.channels, name="chat-logs")
 			await client.send_message(logs, "`#{}` **{}**: {}".format(channel, author, content))
@@ -226,7 +240,7 @@ async def on_message_edit(original, new):
 	channel = new.channel
 	old_content = original.content
 	new_content = new.content
-	if author != client.user:
+	if author != client.user and not author.bot:
 		try:
 			logs = discord.utils.get(author.server.channels, name="chat-logs")
 			embed = discord.Embed(title="Message Edited", color=0xFFFF00)
@@ -243,7 +257,7 @@ async def on_message_delete(message):
 	channel = message.channel
 	author = message.author
 	content = message.content
-	if author != client.user:
+	if author != client.user and not author.bot:
 		try:
 			logs = discord.utils.get(author.server.channels, name="chat-logs")
 			embed = discord.Embed(title="Message Deleted", color=0xFF0000)
