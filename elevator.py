@@ -186,17 +186,21 @@ async def clear(ctx, amount=100):
 		except:
 			print("Purge unable to be logged")
 
-@client.command()
-async def kill():
-	print("Kill command received. Exiting...")
-	await client.say("Aauughhh! :dizzy_face:")
-	await client.logout()
+@client.command(pass_context=True)
+async def kill(ctx):
+	author = ctx.message.author
+	if author.top_role == discord.utils.get(author.server.roles, name="Maintenance Crew"):
+		print("Kill command received. Exiting...")
+		await client.say("Aauughhh! :dizzy_face:")
+		await client.logout()
 
-@client.command()
-async def murder_to_death():
-	print("Kill command received. Exiting...")
-	await client.say("Aauughhh! :dizzy_face:")
-	await client.logout()
+@client.command(pass_context=True)
+async def murder_to_death(ctx):
+	author = ctx.message.author
+	if author.top_role == discord.utils.get(author.server.roles, name="Maintenance Crew"):
+		print("Kill command received. Exiting...")
+		await client.say("Aauughhh! :dizzy_face:")
+		await client.logout()
 
 @client.event
 async def on_ready():
